@@ -2,10 +2,10 @@
 #include <GL/glu.h>
 #include <cmath>
 
+bool varKartesius = false;
+float rot = 0;
 // Posisi dan orientasi kamera
 float camX = 0.0f, camY = 5.0f, camZ = 10.0f;
-float yaw = -90.0f, pitch = 0.0f;
-bool firstMouse = true;
 int windowWidth = 800, windowHeight = 600;
 float lastX = windowWidth / 2.0f, lastY = windowHeight / 2.0f; // Posisi terakhir mouse
 
@@ -20,9 +20,6 @@ bool animating = false; // Status animasi
 // Status lampu
 bool lightOn = true; // Lampu menyala
 
-// Fungsi untuk inisialisasi OpenGL
-// Fungsi untuk inisialisasi OpenGL
-// Fungsi untuk inisialisasi OpenGL
 // Fungsi untuk inisialisasi OpenGL
 void init() {
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f); // Mengatur warna background
@@ -49,6 +46,28 @@ void init() {
 
     glEnable(GL_COLOR_MATERIAL); // Mengaktifkan pewarnaan material
     glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+}
+
+// Fungsi untuk menggambar garis kartesius
+void drawAxes() {
+    glBegin(GL_LINES); // Memulai menggambar garis
+
+    // Sumbu X (merah)
+    glColor3f(1.0f, 0.0f, 0.0f); // Warna merah
+    glVertex3f(-10.0f, 0.0f, 0.0f); // Titik awal sumbu X
+    glVertex3f(10.0f, 0.0f, 0.0f); // Titik akhir sumbu X
+
+    // Sumbu Y (hijau)
+    glColor3f(0.0f, 1.0f, 0.0f); // Warna hijau
+    glVertex3f(0.0f, -10.0f, 0.0f); // Titik awal sumbu Y
+    glVertex3f(0.0f, 10.0f, 0.0f); // Titik akhir sumbu Y
+
+    // Sumbu Z (biru)
+    glColor3f(0.0f, 0.0f, 1.0f); // Warna biru
+    glVertex3f(0.0f, 0.0f, -10.0f); // Titik awal sumbu Z
+    glVertex3f(0.0f, 0.0f, 10.0f); // Titik akhir sumbu Z
+
+    glEnd(); // Mengakhiri menggambar garis
 }
 
 // Fungsi untuk menggambar kubus dengan ukuran tertentu
@@ -211,6 +230,11 @@ void display() {
     } else {
         glDisable(GL_LIGHT0); // Mematikan lampu
     }
+    glRotatef(rot, 0, 1, 0);
+    if (varKartesius == true ){
+    	drawAxes();
+	}
+
 
     // Menggambar lantai dan dinding dengan pencahayaan dimatikan
     glDisable(GL_LIGHTING); // Menonaktifkan pencahayaan sementara
@@ -312,58 +336,30 @@ void keyboard(unsigned char key, int x, int y) {
             camX -= dirZ * speed;
             camZ += dirX * speed;
             break;
+        case 'x':
+    		rot++;
+        	break;
+    	case 'z':
+        	rot--;
+        	break;    
         case 'o': // Membuka atau menutup buku
             animating = true;
             break;
         case 'l': // Menyalakan/mematikan lampu
             lightOn = !lightOn;
             break;
+        case 'k':
+		if (varKartesius == false){
+			varKartesius = true;
+		}else{
+			varKartesius = false;	
+		}
+        break;
+    
         case 27: // ESC untuk keluar
             exit(0);
             break;
     }
-    glutPostRedisplay(); // Meminta ulang tampilan
-}
-
-// Fungsi untuk menangani pergerakan mouse
-void mouseMotion(int x, int y) {
-    if (firstMouse) {
-        lastX = x;
-        lastY = y;
-        firstMouse = false;
-    }
-
-    float xOffset = x - lastX;
-    float yOffset = lastY - y; // Dikurangi karena koordinat y terbalik
-    lastX = x;
-    lastY = y;
-
-    float sensitivity = 0.1f;
-    xOffset *= sensitivity;
-    yOffset *= sensitivity;
-
-    yaw += xOffset;
-    pitch += yOffset;
-
-    // Batasi pitch
-    if (pitch > 89.0f)
-        pitch = 89.0f;
-    if (pitch < -89.0f)
-        pitch = -89.0f;
-
-    // Update arah kamera// Update arah kamera
-    float radYaw = yaw * M_PI / 180.0f;
-    float radPitch = pitch * M_PI / 180.0f;
-    dirX = cos(radYaw) * cos(radPitch);
-    dirY = sin(radPitch);
-    dirZ = sin(radYaw) * cos(radPitch);
-
-    // Normalisasi vektor arah
-    float length = sqrt(dirX * dirX + dirY * dirY + dirZ * dirZ);
-    dirX /= length;
-    dirY /= length;
-    dirZ /= length;
-
     glutPostRedisplay(); // Meminta ulang tampilan
 }
 
@@ -406,14 +402,13 @@ int main(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH); // Menggunakan buffer ganda dan depth
     glutInitWindowSize(windowWidth, windowHeight); // Mengatur ukuran jendela
-    glutCreateWindow("3D Room with Table and Books"); // Membuat jendela dengan judul
+    glutCreateWindow("TB KELOMPOK 1 - ALAT TULIS"); // Membuat jendela dengan judul
 
     init(); // Inisialisasi OpenGL
 
     glutDisplayFunc(display); // Mengatur fungsi tampilan
     glutReshapeFunc(reshape); // Mengatur fungsi reshape
     glutKeyboardFunc(keyboard); // Mengatur fungsi keyboard
-    glutPassiveMotionFunc(mouseMotion); // Mengatur fungsi pergerakan mouse
     glutTimerFunc(16, update, 0); // Memulai fungsi update dengan timer
 
     glutFullScreen(); // Memulai aplikasi dalam mode layar penuh
